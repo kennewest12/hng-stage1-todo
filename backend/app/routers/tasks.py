@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
 from app.core.database import get_session
@@ -7,6 +7,14 @@ from app.schemas.task import TaskCreate, TaskRead
 
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["Tasks"])
+
+
+@router.get("/{task_id}", response_model=TaskRead)
+def get_task(task_id: int, session: Session = Depends(get_session)):
+    task = session.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
 
 
 @router.get("", response_model=list[TaskRead])

@@ -32,6 +32,9 @@ function App() {
   const [taskPriority, setTaskPriority] = useState("medium");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openNotes, setOpenNotes] = useState(null);
+  const [notes, setNotes] = useState({});
+  const [noteText, setNoteText] = useState("");
 
   async function loadTasks() {
     setLoading(true);
@@ -91,6 +94,56 @@ function App() {
       setTasks((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function loadNotes(taskId) {
+    try {
+      const data = await request(`/api/v1/tasks/${taskId}/notes`);
+      setNotes((current) => ({ ...current, [taskId]: data }));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function toggleNotes(taskId) {
+    if (openNotes === taskId) {
+      setOpenNotes(null);
+      return;
+    }
+
+    setOpenNotes(taskId);
+    setNoteText("");
+    await loadNotes(taskId);
+  }
+
+  async function addNote(taskId) {
+    if (!noteText.trim()) return;
+
+    try {
+      const note = await request(`/api/v1/tasks/${taskId}/notes`, {
+        method: "POST",
+        body: JSON.stringify({ content: noteText.trim() }),
+      });
+      setNotes((current) => ({
+        ...current,
+        [taskId]: [...(current[taskId] || []), note],
+      }));
+      setNoteText("");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function deleteNote(taskId, noteId) {
+    try {
+      await request(`/api/v1/notes/${noteId}`, { method: "DELETE" });
+      setNotes((current) => ({
+        ...current,
+        [taskId]: (current[taskId] || []).filter((note) => note.id !== noteId),
+      }));
     } catch (err) {
       setError(err.message);
     }

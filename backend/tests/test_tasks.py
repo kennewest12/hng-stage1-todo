@@ -116,3 +116,25 @@ def test_update_task_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
+
+
+def test_delete_task():
+    create_response = client.post(
+        "/api/v1/tasks",
+        json={"title": "Task to delete", "priority": "low"},
+    )
+    task_id = create_response.json()["id"]
+
+    response = client.delete(f"/api/v1/tasks/{task_id}")
+
+    assert response.status_code == 204
+
+    get_response = client.get(f"/api/v1/tasks/{task_id}")
+    assert get_response.status_code == 404
+
+
+def test_delete_task_not_found():
+    response = client.delete("/api/v1/tasks/999999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task not found"

@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
 from app.core.database import get_session
+from app.models.note import Note
 from app.models.task import Task, TaskPriority
 from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
 
@@ -51,6 +53,10 @@ def delete_task(task_id: int, session: Session = Depends(get_session)):
     task = session.get(Task, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    notes = session.exec(select(Note).where(Note.task_id == task_id)).all()
+    for note in notes:
+        session.delete(note)
 
     session.delete(task)
     session.commit()

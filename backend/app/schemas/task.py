@@ -11,6 +11,12 @@ class TaskCreate(BaseModel):
     priority: TaskPriority = TaskPriority.MEDIUM
 
 
+class TaskUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = None
+    priority: TaskPriority | None = None
+
+
 class TaskRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

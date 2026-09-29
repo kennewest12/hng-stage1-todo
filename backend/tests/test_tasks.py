@@ -150,6 +150,27 @@ def test_delete_task():
     assert get_response.status_code == 404
 
 
+def test_delete_task_with_notes():
+    create_response = client.post(
+        "/api/v1/tasks",
+        json={"title": "Task with note", "priority": "medium"},
+    )
+    task_id = create_response.json()["id"]
+
+    note_response = client.post(
+        f"/api/v1/tasks/{task_id}/notes",
+        json={"content": "A note attached to the task"},
+    )
+
+    assert note_response.status_code == 201
+
+    delete_response = client.delete(f"/api/v1/tasks/{task_id}")
+
+    assert delete_response.status_code == 204
+    assert client.get(f"/api/v1/tasks/{task_id}").status_code == 404
+    assert client.get(f"/api/v1/tasks/{task_id}/notes").status_code == 404
+
+
 def test_delete_task_not_found():
     response = client.delete("/api/v1/tasks/999999")
 

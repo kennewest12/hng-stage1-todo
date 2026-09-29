@@ -41,6 +41,22 @@ hng-stage1-todo/
 └── .gitignore
 ```
 
+## Environment Variables
+
+### Backend
+
+Create `backend/.env` locally from `backend/.env.example` and set your PostgreSQL connection string.
+
+### Frontend
+
+The frontend uses `VITE_API_URL` to locate the backend API. If it is not set, it defaults to `http://localhost:8000`.
+
+Example:
+
+```text
+VITE_API_URL=http://localhost:8000
+```
+
 ## Development
 
 The project is being built incrementally. Each feature should be implemented, tested locally, and validated before moving to the next feature.

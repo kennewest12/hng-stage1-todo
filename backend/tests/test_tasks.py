@@ -39,3 +39,31 @@ def test_create_task():
     assert data["description"] == "Build the To-Do application"
     assert data["priority"] == "high"
     assert data["completed"] is False
+
+
+def test_list_tasks():
+    client.post(
+        "/api/v1/tasks",
+        json={"title": "Task One", "priority": "low"},
+    )
+    client.post(
+        "/api/v1/tasks",
+        json={"title": "Task Two", "priority": "high"},
+    )
+
+    response = client.get("/api/v1/tasks")
+
+    assert response.status_code == 200
+    assert len(response.json()) >= 2
+
+
+def test_list_tasks_by_priority():
+    client.post(
+        "/api/v1/tasks",
+        json={"title": "High Priority Task", "priority": "high"},
+    )
+
+    response = client.get("/api/v1/tasks?priority=high")
+
+    assert response.status_code == 200
+    assert all(task["priority"] == "high" for task in response.json())

@@ -88,3 +88,31 @@ def test_get_task_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
+
+
+def test_update_task():
+    create_response = client.post(
+        "/api/v1/tasks",
+        json={"title": "Original title", "priority": "low"},
+    )
+    task_id = create_response.json()["id"]
+
+    response = client.put(
+        f"/api/v1/tasks/{task_id}",
+        json={"title": "Updated title", "priority": "high"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["title"] == "Updated title"
+    assert data["priority"] == "high"
+
+
+def test_update_task_not_found():
+    response = client.put(
+        "/api/v1/tasks/999999",
+        json={"title": "Updated title"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task not found"

@@ -357,3 +357,48 @@ h1 {
     width: 100%;
   }
 }
+
+
+.edit-form {
+  display: grid;
+  gap: 8px;
+  width: min(560px, 100%);
+}
+
+.edit-form input,
+.edit-form textarea,
+.edit-form select {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-button,
+.cancel-button,
+.edit-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.save-button {
+  background: #111827;
+  color: #ffffff;
+}
+
+.cancel-button {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.edit-button {
+  background: #f3f4f6;
+  color: #374151;
+}

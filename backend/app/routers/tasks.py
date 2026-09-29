@@ -31,6 +31,20 @@ def list_tasks(
     return session.exec(statement).all()
 
 
+@router.patch("/{task_id}/complete", response_model=TaskRead)
+def toggle_task_completion(task_id: int, session: Session = Depends(get_session)):
+    task = session.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task.completed = not task.completed
+    task.updated_at = datetime.now(timezone.utc)
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+    return task
+
+
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int, session: Session = Depends(get_session)):
     task = session.get(Task, task_id)

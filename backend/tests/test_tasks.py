@@ -138,3 +138,28 @@ def test_delete_task_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
+
+
+def test_toggle_task_completion():
+    create_response = client.post(
+        "/api/v1/tasks",
+        json={"title": "Complete this task", "priority": "medium"},
+    )
+    task_id = create_response.json()["id"]
+
+    response = client.patch(f"/api/v1/tasks/{task_id}/complete")
+
+    assert response.status_code == 200
+    assert response.json()["completed"] is True
+
+    response = client.patch(f"/api/v1/tasks/{task_id}/complete")
+
+    assert response.status_code == 200
+    assert response.json()["completed"] is False
+
+
+def test_toggle_task_completion_not_found():
+    response = client.patch("/api/v1/tasks/999999/complete")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task not found"

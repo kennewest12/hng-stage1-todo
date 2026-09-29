@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: hng-stage1-todo-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -c "from app.core.database import create_db_and_tables; create_db_and_tables()" && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hng-stage1-todo-db
+          property: connectionString
+
+databases:
+  - name: hng-stage1-todo-db
+    databaseName: hng_stage1_todo
+    plan: free

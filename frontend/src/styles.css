@@ -268,3 +268,92 @@ h1 {
     align-self: flex-end;
   }
 }
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.notes-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.notes-panel {
+  margin: -2px 0 12px;
+  border: 1px solid #e5e7eb;
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  padding: 16px;
+  background: #f9fafb;
+}
+
+.note-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.note-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.note-form button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #111827;
+  color: #ffffff;
+}
+
+.notes-list {
+  display: grid;
+  gap: 8px;
+}
+
+.note {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.note span {
+  overflow-wrap: anywhere;
+}
+
+.note button {
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.notes-empty {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .note-form {
+    flex-direction: column;
+  }
+
+  .note-form button {
+    width: 100%;
+  }
+}

@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from datetime import datetime, timezone\nfrom fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
 from app.core.database import get_session
 from app.models.task import Task, TaskPriority
-from app.schemas.task import TaskCreate, TaskRead
+from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
 
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["Tasks"])
@@ -29,6 +29,27 @@ def list_tasks(
     if priority is not None:
         statement = statement.where(Task.priority == priority)
     return session.exec(statement).all()
+
+
+@router.put("/{task_id}", response_model=TaskRead)
+def update_task(
+    task_id: int,
+    task_data: TaskUpdate,
+    session: Session = Depends(get_session),
+):
+    task = session.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    update_data = task_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(task, key, value)
+
+    task.updated_at = datetime.now(timezone.utc)
+    session.add(task)
+    session.commit()
+    session.refresh(task)
+    return task
 
 
 @router.post("", response_model=TaskRead, status_code=status.HTTP_201_CREATED)

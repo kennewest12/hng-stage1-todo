@@ -67,3 +67,24 @@ def test_list_tasks_by_priority():
 
     assert response.status_code == 200
     assert all(task["priority"] == "high" for task in response.json())
+
+
+def test_get_task():
+    create_response = client.post(
+        "/api/v1/tasks",
+        json={"title": "Find this task", "priority": "medium"},
+    )
+    task_id = create_response.json()["id"]
+
+    response = client.get(f"/api/v1/tasks/{task_id}")
+
+    assert response.status_code == 200
+    assert response.json()["id"] == task_id
+    assert response.json()["title"] == "Find this task"
+
+
+def test_get_task_not_found():
+    response = client.get("/api/v1/tasks/999999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Task not found"

@@ -66,7 +66,24 @@ def test_list_tasks_by_priority():
     response = client.get("/api/v1/tasks?priority=high")
 
     assert response.status_code == 200
+    assert response.json()
     assert all(task["priority"] == "high" for task in response.json())
+
+
+def test_list_tasks_by_completion_status():
+    create_response = client.post(
+        "/api/v1/tasks",
+        json={"title": "Task to complete", "priority": "medium"},
+    )
+    task_id = create_response.json()["id"]
+
+    client.patch(f"/api/v1/tasks/{task_id}/complete")
+
+    response = client.get("/api/v1/tasks?completed=true")
+
+    assert response.status_code == 200
+    assert response.json()
+    assert all(task["completed"] is True for task in response.json())
 
 
 def test_get_task():

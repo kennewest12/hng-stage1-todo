@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -35,6 +35,10 @@ function App() {
   const [openNotes, setOpenNotes] = useState(null);
   const [notes, setNotes] = useState({});
   const [noteText, setNoteText] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPriority, setEditPriority] = useState("medium");
 
   async function loadTasks() {
     setLoading(true);
@@ -47,7 +51,8 @@ function App() {
       if (filter === "completed") params.set("completed", "true");
       if (priority !== "all") params.set("priority", priority);
 
-      const data = await request(`/api/v1/tasks?${params.toString()}`);
+      const query = params.toString();
+      const data = await request(`/api/v1/tasks${query ? `?${query}` : ""}`);
       setTasks(data);
     } catch (err) {
       setError(err.message);
@@ -80,6 +85,43 @@ function App() {
       setDescription("");
       setTaskPriority("medium");
       setError("");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  function startEditing(task) {
+    setEditingTaskId(task.id);
+    setEditTitle(task.title);
+    setEditDescription(task.description || "");
+    setEditPriority(task.priority);
+    setError("");
+  }
+
+  function cancelEditing() {
+    setEditingTaskId(null);
+    setEditTitle("");
+    setEditDescription("");
+    setEditPriority("medium");
+  }
+
+  async function updateTask(taskId) {
+    if (!editTitle.trim()) return;
+
+    try {
+      const updated = await request(`/api/v1/tasks/${taskId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          description: editDescription.trim() || null,
+          priority: editPriority,
+        }),
+      });
+
+      setTasks((current) =>
+        current.map((task) => (task.id === updated.id ? updated : task)),
+      );
+      cancelEditing();
     } catch (err) {
       setError(err.message);
     }
@@ -153,6 +195,10 @@ function App() {
     try {
       await request(`/api/v1/tasks/${taskId}`, { method: "DELETE" });
       setTasks((current) => current.filter((task) => task.id !== taskId));
+
+      if (openNotes === taskId) {
+        setOpenNotes(null);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -234,32 +280,139 @@ function App() {
         ) : (
           <div className="task-list">
             {tasks.map((task) => (
-              <article className={task.completed ? "task completed" : "task"} key={task.id}>
-                <div className="task-main">
-                  <button
-                    className="check-button"
-                    type="button"
-                    onClick={() => toggleTask(task)}
-                    aria-label={task.completed ? "Mark task active" : "Mark task completed"}
-                  >
-                    {task.completed ? "✓" : ""}
-                  </button>
-                  <div>
-                    <h2>{task.title}</h2>
-                    {task.description && <p>{task.description}</p>}
-                    <span className={`priority priority-${task.priority}`}>
-                      {task.priority}
-                    </span>
+              <Fragment key={task.id}>
+                <article className={task.completed ? "task completed" : "task"}>
+                  <div className="task-main">
+                    <button
+                      className="check-button"
+                      type="button"
+                      onClick={() => toggleTask(task)}
+                      aria-label={
+                        task.completed
+                          ? "Mark task active"
+                          : "Mark task completed"
+                      }
+                    >
+                      {task.completed ? "✓" : ""}
+                    </button>
+
+                    {editingTaskId === task.id ? (
+                      <div className="edit-form">
+                        <input
+                          value={editTitle}
+                          onChange={(event) => setEditTitle(event.target.value)}
+                          aria-label="Edit task title"
+                        />
+                        <textarea
+                          value={editDescription}
+                          onChange={(event) =>
+                            setEditDescription(event.target.value)
+                          }
+                          rows="3"
+                          aria-label="Edit task description"
+                        />
+                        <select
+                          value={editPriority}
+                          onChange={(event) =>
+                            setEditPriority(event.target.value)
+                          }
+                          aria-label="Edit task priority"
+                        >
+                          <option value="low">Low priority</option>
+                          <option value="medium">Medium priority</option>
+                          <option value="high">High priority</option>
+                        </select>
+                        <div className="edit-actions">
+                          <button
+                            className="save-button"
+                            type="button"
+                            onClick={() => updateTask(task.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="cancel-button"
+                            type="button"
+                            onClick={cancelEditing}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h2>{task.title}</h2>
+                        {task.description && <p>{task.description}</p>}
+                        <span className={`priority priority-${task.priority}`}>
+                          {task.priority}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <button
-                  className="delete-button"
-                  type="button"
-                  onClick={() => deleteTask(task.id)}
-                >
-                  Delete
-                </button>
-              </article>
+
+                  <div className="task-actions">
+                    <button
+                      className="notes-button"
+                      type="button"
+                      onClick={() => toggleNotes(task.id)}
+                    >
+                      {openNotes === task.id ? "Hide Notes" : "Notes"}
+                    </button>
+                    <button
+                      className="edit-button"
+                      type="button"
+                      onClick={() => startEditing(task)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="delete-button"
+                      type="button"
+                      onClick={() => deleteTask(task.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+
+                {openNotes === task.id && (
+                  <section className="notes-panel" aria-label="Task notes">
+                    <form
+                      className="note-form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        addNote(task.id);
+                      }}
+                    >
+                      <input
+                        value={noteText}
+                        onChange={(event) => setNoteText(event.target.value)}
+                        placeholder="Add a note..."
+                        aria-label="New note"
+                      />
+                      <button type="submit">Add Note</button>
+                    </form>
+
+                    {(notes[task.id] || []).length === 0 ? (
+                      <p className="notes-empty">No notes yet.</p>
+                    ) : (
+                      <div className="notes-list">
+                        {notes[task.id].map((note) => (
+                          <div className="note" key={note.id}>
+                            <span>{note.content}</span>
+                            <button
+                              type="button"
+                              onClick={() => deleteNote(task.id, note.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )}
+              </Fragment>
             ))}
           </div>
         )}
